@@ -16,6 +16,13 @@ class TaskDatabase:
 
     def create_tasks_table(self):
         self._cursor.execute(f"""
+            SELECT tableName FROM sqlite_master WHERE type='table' AND tableName='{self.TASK_TABLE_NAME}'""")
+        
+        result = self._cursor.fetchall()
+        if len(result) > 0:
+            return
+        
+        self._cursor.execute(f"""
             CREATE TABLE {self.TASK_TABLE_NAME}(description TEXT)""")
 
     def add_task(self, task: Task):
