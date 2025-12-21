@@ -25,3 +25,5 @@ class Task:
 
         self._description = description
 
+    def __str__(self):
+        return f"ID: {self.unique_id}, Description: {self.description}"
