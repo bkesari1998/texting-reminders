@@ -29,10 +29,12 @@ class TaskDatabase:
         self._cursor.execute(f"""
             INSERT INTO {self.TASK_TABLE_NAME} VALUES('{task.description}')""")
 
+        self._conn.commit()
+
     def get_tasks(self) -> list[Task]:
         self._cursor.execute(f"""
             SELECT rowid, description FROM {self.TASK_TABLE_NAME}""")
-        
+
         tasks = []
         result = self._cursor.fetchall()
         for row_id, description in result:
@@ -48,3 +50,14 @@ class TaskDatabase:
         row_id, description = result[0]
 
         return Task(description, row_id)
+
+if __name__ == '__main__':
+    db = TaskDatabase("tasks.db")
+    
+    db.connect()
+    db.create_tasks_table()
+    tasks = db.get_tasks()
+    for task in tasks:
+        print(task)
+    db.disconnect()
+
