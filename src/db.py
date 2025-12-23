@@ -8,7 +8,7 @@ class TaskDatabase:
         self.path = path
         
     def connect(self):
-        self._conn = sqlite3.connect(self.path)
+        self._conn = sqlite3.connect(self.path, check_same_thread=False)
         self._cursor = self._conn.cursor()
 
     def disconnect(self):
@@ -16,7 +16,7 @@ class TaskDatabase:
 
     def create_tasks_table(self):
         self._cursor.execute(f"""
-            SELECT tableName FROM sqlite_master WHERE type='table' AND tableName='{self.TASK_TABLE_NAME}'""")
+            SELECT name FROM sqlite_master WHERE type='table' AND name='{self.TASK_TABLE_NAME}'""")
         
         result = self._cursor.fetchall()
         if len(result) > 0:
