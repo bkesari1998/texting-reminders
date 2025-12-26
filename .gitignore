@@ -1,4 +1,5 @@
 src/pycache/
 *.pyc
-src/tasks.db
+
 src/tasks.db-journal
+data/tasks.db
