@@ -1,0 +1,58 @@
+<html>
+    <head>
+        <title>Tasks</title>
+    </head>
+    <body>
+        <h1>Add a Task!</h1>
+        <form action="/add-task" method="POST">
+            <p>
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description">
+            </p>
+            <p>
+                <label for="deadline">Deadline:</label>
+                <input type="datetime-local" id="deadline" name="deadline">
+            </p>
+            <button type="submit">Add Task</button>
+        </form>
+        <button id="fetchBtn">Get Data</button>
+        <div id="result">
+            <ul id="task-list">
+            </ul>
+        </div>
+        <script>
+            const btn = document.getElementById('fetchBtn');
+            const display = document.getElementById('result');
+    
+            btn.addEventListener('click', () => {
+                // 1. Start the GET request
+                fetch('/all-tasks')
+                    .then(response => {
+                        // 2. Check if the request was successful
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json(); // Convert response to JSON
+                    })
+                    .then(data => {
+                        const listContainer = document.getElementById('task-list');
+
+                        listContainer.innerHTML = '';
+
+
+                        data.forEach(task => {
+                            const li = document.createElement('li')
+                            li.textContent = `${task.description} - ${task.deadline}`
+
+                            // Append it to the container
+                            listContainer.appendChild(li);
+                        });
+                    })
+                    .catch(error => {
+                        // Handle any errors
+                        display.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+                    });
+            });
+        </script>
+    </body>
+</html>
