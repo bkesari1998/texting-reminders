@@ -1,8 +1,6 @@
-from os import environ
 from typing import Annotated
 from datetime import datetime
 from os import environ
-
 
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker, Session
