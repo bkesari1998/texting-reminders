@@ -1,5 +1,7 @@
-from os import environ
 from typing import Annotated
+from datetime import datetime
+from os import environ
+
 
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker, Session
@@ -31,12 +33,14 @@ def home():
     with open(environ["TEXTING_REMINDERS_INDEX_PATH"]) as f:
         return f.read()
 
-@app.post("/add-task", response_model=TaskOut, status_code=201)
-def add_task(
-    new_task: Annotated[TaskCreate, Form()],
+@app.post("/add-reminder", response_model=TaskOut, status_code=201)
+def add_reminder(
+    description: Annotated[str, Form()],
+    deadline: Annotated[datetime | None, Form()] = None,
     db: Session = Depends(get_db)
 ) -> TaskOut:
-    task = Task(description=new_task.description, deadline=new_task.deadline)
+    
+    task = Task(description=description, deadline=deadline)
     db.add(task)
     db.commit()
     db.refresh(task)
