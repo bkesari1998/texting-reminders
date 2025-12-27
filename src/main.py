@@ -1,3 +1,6 @@
+from typing import Annotated
+from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker, Session
 
@@ -25,10 +28,12 @@ app = FastAPI()
 
 @app.post("/add-reminder", response_model=TaskOut, status_code=201)
 def add_reminder(
-    new_task: TaskCreate,
+    description: Annotated[str, Form()],
+    deadline: Annotated[datetime | None, Form()] = None,
     db: Session = Depends(get_db)
 ) -> TaskOut:
-    task = Task(description=new_task.description, deadline=new_task.deadline)
+    
+    task = Task(description=description, deadline=deadline)
     db.add(task)
     db.commit()
     db.refresh(task)

@@ -14,7 +14,7 @@ class Task(Base):
         DateTime(timezone=True),
         server_default=func.now()
     )
-    deadline: Mapped[datetime] = mapped_column(
+    deadline: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True
     )
