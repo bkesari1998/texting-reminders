@@ -14,7 +14,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 from db import engine
 from models import Task
-from api import TaskCreate, TaskOut
+from api import TaskOut
 
 from typing import Generator
 
@@ -34,8 +34,8 @@ def home():
     with open(environ["TEXTING_REMINDERS_INDEX_PATH"]) as f:
         return f.read()
 
-@app.post("/add-reminder", response_model=TaskOut, status_code=201)
-def add_reminder(
+@app.post("/add-task", response_model=TaskOut, status_code=201)
+def add_task(
     description: Annotated[str, Form()],
     deadline: Annotated[datetime | None, Form()] = None,
     db: Session = Depends(get_db)
