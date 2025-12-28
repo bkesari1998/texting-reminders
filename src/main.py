@@ -1,17 +1,19 @@
 from typing import Annotated
 from datetime import datetime
+from os import environ
+
 
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker, Session
 
 from fastapi import FastAPI, Form, Depends
-from fastapi.responses import Response
+from fastapi.responses import Response, HTMLResponse
 
 from twilio.twiml.messaging_response import MessagingResponse
 
 from db import engine
 from models import Task
-from api import TaskCreate, TaskOut
+from api import TaskOut
 
 from typing import Generator
 
@@ -26,8 +28,13 @@ def get_db() -> Generator[Session, None, None]:
 
 app = FastAPI()
 
-@app.post("/add-reminder", response_model=TaskOut, status_code=201)
-def add_reminder(
+@app.get("/", response_class=HTMLResponse)
+def home():
+    with open(environ["TEXTING_REMINDERS_INDEX_PATH"]) as f:
+        return f.read()
+
+@app.post("/add-task", response_model=TaskOut, status_code=201)
+def add_task(
     description: Annotated[str, Form()],
     deadline: Annotated[datetime | None, Form()] = None,
     db: Session = Depends(get_db)
