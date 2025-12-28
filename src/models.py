@@ -18,6 +18,7 @@ class Task(Base):
         DateTime(timezone=True),
         nullable=True
     )
+    completed: Mapped[bool] = mapped_column(default=False)
 
     def __repr__(self) -> str:
         return f"Task(id={self.id!r}, description={self.description!r})"
