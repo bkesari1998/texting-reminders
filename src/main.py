@@ -2,14 +2,11 @@ from typing import Annotated
 from datetime import datetime
 from os import environ
 
-
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker, Session
 
 from fastapi import FastAPI, Form, Depends
 from fastapi.responses import Response, HTMLResponse
-
-from twilio.twiml.messaging_response import MessagingResponse
 
 from db import engine
 from models import Task
@@ -59,7 +56,7 @@ def get_all_tasks(db: Session = Depends(get_db)) -> list[TaskOut]:
 def get_task(
     id: int, 
     db: Session = Depends(get_db)
-) -> TaskOut:
+) -> TaskOut | Response:
     stmt = select(Task).where(Task.id == id)
     result = db.execute(stmt)
     task = result.scalar_one_or_none()
@@ -69,32 +66,23 @@ def get_task(
     else:
         return Response(status_code=404)
 
-@app.post("/sms")
-def sms_handler(Body: str = Form(...)):
-    resp = MessagingResponse()
+@app.patch("/toggle-completion/{task-id}", response_model=TaskOut)
+def toggle_completion(
+    id: int,
+    db: Session = Depends(get_db)
+) -> TaskOut:
     
-    with Session(engine) as session:
-        if Body.startswith("Remind me to"):
-            task = Task(description=Body[len("Remind me to"):])
-            session.add(task)
-            session.commit()
-            resp.message("Ok, I will remind you to do that.")
-        elif Body == "What are my tasks?":
-            stmt = select(Task)
-            result = session.execute(stmt)
-            tasks = result.scalars().all()
-            tasks_str = ""
-            for task in tasks:
-                tasks_str += str(task) + "\n\n"
-            resp.message(tasks_str)
-        else:
-            msg = resp.message("Sorry, I didn't understand that :(")
+    stmt = select(Task).where(Task.id == id)
+    result = db.execute(stmt)
+    task = result.scalar_one_or_none()
 
-        return Response(
-            content=str(resp),
-            media_type="application/xml"
-        )
-    
+    if task:
+        task.completed = not task.completed
+        db.commit()
+        db.refresh(task)
+        return task
+    else:
+        return Response(status_code=404)
 
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():

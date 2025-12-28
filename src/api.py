@@ -6,5 +6,6 @@ class TaskOut(BaseModel):
     description: str
     created_datetime: datetime
     deadline: datetime | None = None
+    completed: bool = False
 
     model_config = {"from_attributes": True}
