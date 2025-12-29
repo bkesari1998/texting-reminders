@@ -1,7 +1,7 @@
 from db import Base
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, DateTime, func
-from datetime import datetime
+from sqlalchemy import String, DateTime, Date, Time, func
+from datetime import datetime, date, time
 
 class Task(Base):
     DESCRIPTION_MAX_LEN = 255
@@ -14,8 +14,12 @@ class Task(Base):
         DateTime(timezone=True),
         server_default=func.now()
     )
-    deadline: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True),
+    deadline_date: Mapped[date| None] = mapped_column(
+        Date(),
+        nullable=True
+    )
+    deadline_time: Mapped[time | None] = mapped_column(
+        Time(),
         nullable=True
     )
     completed: Mapped[bool] = mapped_column(default=False)
