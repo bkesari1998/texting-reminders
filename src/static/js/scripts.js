@@ -8,8 +8,17 @@ async function toggleTaskCompletion(taskId) {
         });
 
         if (response.ok) {
-            // Reload the page to show the updated task in the correct tab
-            window.location.reload();
+
+            const url = new URL(window.location.href);
+            const incomplete_tab = document.getElementById("incomplete-tab")
+
+            if (incomplete_tab.classList.contains("active")) {
+                url.searchParams.set('active_tab', 'incomplete');
+            } else {
+                url.searchParams.set('active_tab', 'complete');
+            }
+
+            window.location.href = url.toString();
         } else {
             console.error('Failed to toggle task completion');
             alert('Failed to update task. Please try again.');

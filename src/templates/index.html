@@ -26,7 +26,7 @@
                                 </li>
                             </ul>
                             <div class="tab-content" id="myTabContent">
-                                <div class="tab-pane show fade {% if active_tab == 'incomplete' %}active{% endif %}" id="incomplete-tab-pane" tabindex="0">
+                                <div class="tab-pane fade {% if active_tab == 'incomplete' %}active show{% endif %}" id="incomplete-tab-pane" tabindex="0">
                                     <h3 class="card-title mb-4">Incomplete Items</h3>
                                     <ul class="list-group">
                                         {% for task in incomplete_tasks %}
@@ -40,7 +40,7 @@
                                                         <label class="form-check-label" for="completed">
                                                             Complete
                                                         </label>
-                                                        <input class="form-check-input" type="checkbox" name="completed" onchange="toggleTaskCompletion({{ task.id }})" value="">
+                                                        <input class="form-check-input" type="checkbox" name="completed" onchange="toggleTaskCompletion('{{ task.id }}')" value="">
                                                     </div>
                                                 </div>
                                             </div>
@@ -48,7 +48,7 @@
                                         {% endfor %}
                                     </ul>
                                 </div>
-                                <div class="tab-pane fade" id="completed-tab-pane" role="tabpanel" tabindex="0">
+                                <div class="tab-pane fade {% if active_tab == 'complete' %}active show{% endif %}" id="completed-tab-pane" role="tabpanel" tabindex="0">
                                     <h3 class="card-title mb-4">Completed Items</h3>
                                     <ul class="list-group">
                                         {% for task in completed_tasks %}
@@ -62,7 +62,7 @@
                                                         <label class="form-check-label" for="not-completed">
                                                             Mark as Incomplete
                                                         </label>
-                                                        <input class="form-check-input" type="checkbox" name="not-complete" onchange="toggleTaskCompletion({{ task.id }})" value="" checked>
+                                                        <input class="form-check-input" type="checkbox" name="not-complete" onchange="toggleTaskCompletion('{{ task.id }}')" value="">
                                                     </div>
                                                 </div>
                                             </div>
