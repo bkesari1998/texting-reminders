@@ -1,88 +1,84 @@
 from typing import Annotated
-from datetime import datetime
-from os import environ
+from datetime import date, time
+from pathlib import Path
 
-from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 
-from fastapi import FastAPI, Form, Depends
-from fastapi.responses import Response, HTMLResponse
+from fastapi import FastAPI, Form, Depends, Request, HTTPException
+from fastapi.responses import Response, HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
-from db import engine
-from models import Task
+from db import get_db
 from api import TaskOut
-
-from typing import Generator
-
-SessionLocal = sessionmaker(bind=engine)
-
-def get_db() -> Generator[Session, None, None]:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+from repository import TaskRepository
 
 app = FastAPI()
 
-@app.get("/", response_class=HTMLResponse)
-def home():
-    with open(environ["TEXTING_REMINDERS_INDEX_PATH"]) as f:
-        return f.read()
+BASE_DIR = Path(__file__).parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
-@app.post("/add-task", response_model=TaskOut, status_code=201)
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request,
+         active_tab: str = "incomplete",
+         db: Session = Depends(get_db)
+) -> HTMLResponse:
+
+    incomplete_tasks = TaskRepository.get_incomplete_tasks(db)
+    completed_tasks = TaskRepository.get_completed_tasks(db)
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "incomplete_tasks": incomplete_tasks,
+            "completed_tasks": completed_tasks,
+            "active_tab": active_tab
+        },
+    )
+
+@app.post("/add-task")
 def add_task(
     description: Annotated[str, Form()],
-    deadline: Annotated[datetime | None, Form()] = None,
+    deadline_date: Annotated[date | None, Form()] = None,
+    deadline_time: Annotated[time | None, Form()] = None,
+    active_tab_redirect: Annotated[str, Form()] = "incomplete",
+    db: Session = Depends(get_db)
+) -> RedirectResponse:
+    try:
+        # Validate description (basic validation since Form doesn't use Pydantic directly)
+        if not description or not description.strip():
+            raise ValueError("Description cannot be empty")
+        if len(description) > 255:
+            raise ValueError("Description cannot exceed 255 characters")
+
+        # Use repository to create task
+        TaskRepository.create_task(
+            db=db,
+            description=description.strip(),
+            deadline_date=deadline_date,
+            deadline_time=deadline_time
+        )
+
+        return RedirectResponse(url=f"/?active_tab={active_tab_redirect}", status_code=303)
+    except ValueError as e:
+        # In a real app, you'd want to show this error to the user
+        # For now, just redirect back with the error logged
+        print(f"Validation error: {e}")
+        return RedirectResponse(url=f"/?active_tab={active_tab_redirect}", status_code=303)
+
+@app.patch("/toggle-completion/{task_id}", response_model=TaskOut)
+def toggle_completion(
+    task_id: int,
     db: Session = Depends(get_db)
 ) -> TaskOut:
-    
-    task = Task(description=description, deadline=deadline)
-    db.add(task)
-    db.commit()
-    db.refresh(task)
+    task = TaskRepository.toggle_task_completion(db, task_id)
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
 
     return task
-
-@app.get("/all-tasks", response_model=list[TaskOut])
-def get_all_tasks(db: Session = Depends(get_db)) -> list[TaskOut]:
-    stmt = select(Task)
-    result = db.execute(stmt)
-    tasks = result.scalars().all()
-
-    return tasks
-    
-@app.get("/task", response_model=TaskOut)
-def get_task(
-    id: int, 
-    db: Session = Depends(get_db)
-) -> TaskOut | Response:
-    stmt = select(Task).where(Task.id == id)
-    result = db.execute(stmt)
-    task = result.scalar_one_or_none()
-
-    if task:
-        return task
-    else:
-        return Response(status_code=404)
-
-@app.patch("/toggle-completion/{task-id}", response_model=TaskOut)
-def toggle_completion(
-    id: int,
-    db: Session = Depends(get_db)
-) -> TaskOut:
-    
-    stmt = select(Task).where(Task.id == id)
-    result = db.execute(stmt)
-    task = result.scalar_one_or_none()
-
-    if task:
-        task.completed = not task.completed
-        db.commit()
-        db.refresh(task)
-        return task
-    else:
-        return Response(status_code=404)
 
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
