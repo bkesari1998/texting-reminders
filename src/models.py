@@ -22,7 +22,7 @@ class Task(Base):
         Time(),
         nullable=True
     )
-    completed: Mapped[bool] = mapped_column(default=False)
+    completed: Mapped[bool] = mapped_column(default=False, index=True)
 
     def __repr__(self) -> str:
         return f"Task(id={self.id!r}, description={self.description!r})"
