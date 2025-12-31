@@ -80,6 +80,18 @@ def toggle_completion(
 
     return task
 
+@app.delete("/delete-task/{task_id}", response_model=TaskOut)
+def delete_task(
+    task_id: int,
+    db: Session = Depends(get_db)
+) -> TaskOut:
+    task = TaskRepository.delete_task(db, task_id)
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    return task
+
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
     return Response(status_code=204)

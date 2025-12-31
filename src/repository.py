@@ -1,4 +1,5 @@
 from datetime import date, time
+from copy import deepcopy
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -76,3 +77,18 @@ class TaskRepository:
             db.refresh(task)
             return task
         return None
+    
+    @staticmethod
+    def delete_task(db: Session, task_id: int) -> Task | None:
+        """Deletes a task from the DB.
+
+        Returns the deleted task if found, None otherwise.
+        """
+        task = TaskRepository.get_task_by_id(db, task_id)
+        if task:
+            task_copy = deepcopy(task)
+            db.delete(task)
+            db.commit()
+            return task_copy
+        return None
+        
