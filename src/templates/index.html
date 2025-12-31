@@ -31,9 +31,11 @@
                                     <ul class="list-group">
                                         {% for task in incomplete_tasks %}
                                         <li class="list-group-item">
-                                        <div class="row">
-                                            <div class="col">{{ task.description }}</div>
-                                            <div class="col text-end"> 
+                                        <div class="row align-items-center">
+                                            <div class="col">
+                                                {{ task.description }}
+                                            </div>
+                                            <div class="col text-end">
                                                 <button type="button" class="btn btn-primary" onclick="toggleTaskCompletion('{{task.id}}')">Complete</button>
                                                 <button type="button" class="btn btn-secondary" onclick="deleteTask('{{task.id}}')">Delete</button>
                                             </div>
@@ -47,7 +49,7 @@
                                     <ul class="list-group">
                                         {% for task in completed_tasks %}
                                         <li class="list-group-item">
-                                            <div class="row">
+                                            <div class="row align-items-center">
                                                 <div class="col">
                                                     {{ task.description }}
                                                 </div>
